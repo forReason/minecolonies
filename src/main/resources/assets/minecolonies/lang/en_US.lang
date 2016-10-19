@@ -188,4 +188,7 @@ com.minecolonies.gui.debugScreen.required=%d required to place a Colony.
 
 com.minecolonies.gui.workerHuts.TowerGuard=Guard Tower
 com.minecolonies.job.guard.name=GuardTower
+com.minecolonies.job.Guard=Guard
 com.minecolonies.gui.workerHuts.level0=Please construct the hut to hire a worker.
+com.minecolonies.job.guard.name=GuardTower
+tile.minecolonies.blockHutGuardTower.name=GuardTower
