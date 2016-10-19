@@ -7,12 +7,9 @@ import com.minecolonies.entity.EntityCitizen;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.ContainerPlayer;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -21,8 +18,6 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ReportedException;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -234,7 +229,7 @@ public class InventoryCitizen implements IInventory
             {
                 if (itemStackIn.isItemDamaged())
                 {
-                    int j = this.getFirstEmptyStack();
+                    int j = this.getFirstEmptySlot();
 
                     if (j != NO_SLOT)
                     {
@@ -282,11 +277,11 @@ public class InventoryCitizen implements IInventory
     }
 
     /**
-     * Returns the first item stack that is empty.
+     * Returns the first item slot that is empty.
      *
      * @return the id of the first empty slot.
      */
-    public int getFirstEmptyStack()
+    public int getFirstEmptySlot()
     {
         for (int i = 0; i < this.stacks.length; ++i)
         {
@@ -310,7 +305,7 @@ public class InventoryCitizen implements IInventory
 
         if (j < 0)
         {
-            j = this.getFirstEmptyStack();
+            j = this.getFirstEmptySlot();
         }
 
         if (j < 0)
