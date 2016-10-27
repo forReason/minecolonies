@@ -6,11 +6,21 @@ import com.minecolonies.entity.ai.basic.AbstractAISkeleton;
 import com.minecolonies.entity.ai.citizen.guard.EntityAIRangeGuard;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Random;
+
 /**
  * Job class of the guard.
  */
 public class JobGuard extends AbstractJob
 {
+    private enum GuardJob
+    {
+        KNIGHT,
+        RANGER,
+    }
+
+    private GuardJob task = GuardJob.RANGER;
+
     /**
      * Public constructor of the farmer job.
      *
@@ -32,7 +42,14 @@ public class JobGuard extends AbstractJob
     @Override
     public RenderBipedCitizen.Model getModel()
     {
-        return RenderBipedCitizen.Model.GUARD;
+        int chance = new Random().nextInt(3);
+        if(chance == 1)
+        {
+            task = GuardJob.KNIGHT;
+            return RenderBipedCitizen.Model.KNIGHT_GUARD;
+        }
+        task = GuardJob.RANGER;
+        return RenderBipedCitizen.Model.ARCHER_GUARD;
     }
 
     /**
@@ -42,7 +59,10 @@ public class JobGuard extends AbstractJob
     @Override
     public AbstractAISkeleton generateAI()
     {
+        if(task == GuardJob.KNIGHT)
+        {
+            return new EntityAIMeleeGuard(this);
+        }
         return new EntityAIRangeGuard(this);
     }
-
 }
