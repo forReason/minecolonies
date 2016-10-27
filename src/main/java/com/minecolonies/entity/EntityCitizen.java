@@ -7,10 +7,8 @@ import com.minecolonies.colony.buildings.AbstractBuildingWorker;
 import com.minecolonies.colony.buildings.BuildingFarmer;
 import com.minecolonies.colony.buildings.BuildingHome;
 import com.minecolonies.colony.jobs.AbstractJob;
-import com.minecolonies.colony.jobs.JobGuard;
 import com.minecolonies.configuration.Configurations;
 import com.minecolonies.entity.ai.basic.AbstractEntityAIInteract;
-import com.minecolonies.entity.ai.citizen.guard.EntityAIGuard;
 import com.minecolonies.entity.ai.minimal.*;
 import com.minecolonies.entity.pathfinding.PathNavigate;
 import com.minecolonies.inventory.InventoryCitizen;
@@ -27,14 +25,19 @@ import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.*;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityXPOrb;
-import net.minecraft.entity.monster.EntityIronGolem;
 import net.minecraft.entity.monster.EntityMob;
+import net.minecraft.entity.passive.EntityTameable;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import net.minecraft.init.MobEffects;
+import net.minecraft.init.SoundEvents;
+import net.minecraft.inventory.ContainerPlayer;
+import net.minecraft.inventory.EntityEquipmentSlot;
+import net.minecraft.inventory.Slot;
+import net.minecraft.item.*;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -1225,6 +1228,24 @@ public class EntityCitizen extends EntityAgeable implements INpc
               (float) ((block.stepSound.getVolume() + 1.0D) / BLOCK_BREAK_SOUND_DAMPER),
               (float) (block.stepSound.getFrequency() * SOUND_FREQ_MODIFIER));
         }
+    }
+
+    @Override
+    public boolean attackEntityFrom(@NotNull DamageSource damageSource, float damage)
+    {
+        boolean result = super.attackEntityFrom(damageSource, damage);
+
+        for(ItemStack stack: this.getArmorInventoryList())
+        {
+            if(stack == null || stack.getItem() == null || ! (stack.getItem() instanceof ItemArmor))
+            {
+                continue;
+            }
+            stack.damageItem((int)(damage + this.rand.nextInt() * damage), this);
+            setItemStackToSlot(getSlotForItemStack(stack), stack);
+        }
+
+        return result;
     }
 
     /**
