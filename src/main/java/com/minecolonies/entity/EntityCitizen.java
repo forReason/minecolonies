@@ -1289,9 +1289,7 @@ public class EntityCitizen extends EntityAgeable implements INpc
      */
     private void updateArmorDamage(double damage)
     {
-        //todo
-
-        for(int i=0; i<4;i++)
+        for(int i = 0; i <= 4; i++)
         {
             ItemStack stack = getEquipmentInSlot(i);
 
@@ -1299,11 +1297,12 @@ public class EntityCitizen extends EntityAgeable implements INpc
             {
                 continue;
             }
+
             stack.damageItem((int)(damage / 2), this);
 
             if(stack.stackSize < 1)
             {
-                getInventoryCitizen().setInventorySlotContents(findFirstSlotInInventoryWith(stack.getItem()), null);
+                inventory.setInventorySlotContents(findFirstSlotInInventoryWith(stack.getItem()), null);
             }
             getInventoryCitizen().setInventorySlotContents(findFirstSlotInInventoryWith(stack.getItem()), stack);
         }

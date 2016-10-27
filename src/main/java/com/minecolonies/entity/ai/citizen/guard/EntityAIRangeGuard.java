@@ -180,7 +180,6 @@ public class EntityAIRangeGuard extends AbstractEntityAIGuard implements IRanged
         {
             if(worker.getEntitySenses().canSee(targetEntity) && worker.getDistanceToEntity(targetEntity) <= MAX_ATTACK_DISTANCE)
             {
-                worker.removeHeldItem();
                 attackEntityWithRangedAttack(targetEntity, DAMAGE_PER_ATTACK);
                 setDelay(getReloadTime());
                 attacksExecuted += 1;
@@ -237,6 +236,7 @@ public class EntityAIRangeGuard extends AbstractEntityAIGuard implements IRanged
         double goToX = xDiff > 0? MOVE_MINIMAL : -MOVE_MINIMAL;
         double goToZ = zDiff > 0? MOVE_MINIMAL : -MOVE_MINIMAL;
 
+        worker.swingItem();
         worker.moveEntity(goToX, 0, goToZ);
         worker.playSound("random.bow", (float)BASIC_VOLUME, (float) getRandomPitch());
         worker.worldObj.spawnEntityInWorld(arrowEntity);

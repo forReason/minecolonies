@@ -118,7 +118,7 @@ public class EntityAIMeleeGuard extends AbstractEntityAIGuard
 
         InventoryFunctions.matchFirstInInventory(worker.getInventoryCitizen(), stack -> stack != null && Utils.doesItemServeAsWeapon(stack), worker::setHeldItem);
 
-        return AIState.GUARD_SEARCH_TARGET;
+        return super.searchTarget();
     }
 
     private int getReloadTime()
@@ -141,7 +141,6 @@ public class EntityAIMeleeGuard extends AbstractEntityAIGuard
         {
             if(worker.getEntitySenses().canSee(targetEntity) && worker.getDistanceToEntity(targetEntity) <= MIN_ATTACK_DISTANCE)
             {
-                worker.removeHeldItem();
                 attackEntity(targetEntity, (float)DAMAGE_PER_ATTACK);
                 setDelay(getReloadTime());
                 attacksExecuted += 1;
@@ -197,7 +196,7 @@ public class EntityAIMeleeGuard extends AbstractEntityAIGuard
         double goToZ = zDiff > 0? MOVE_MINIMAL : -MOVE_MINIMAL;
 
         worker.moveEntity(goToX, 0, goToZ);
-        
+
         worker.swingItem();
         worker.playSound("entity.player.attack.sweep", (float)BASIC_VOLUME, (float) getRandomPitch());
 

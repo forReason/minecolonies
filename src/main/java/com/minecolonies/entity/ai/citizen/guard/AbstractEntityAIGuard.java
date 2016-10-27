@@ -166,10 +166,11 @@ public abstract class AbstractEntityAIGuard extends AbstractEntityAISkill<JobGua
      */
     protected void updateArmor()
     {
-        worker.setCurrentItemOrArmor(0, null);
         worker.setCurrentItemOrArmor(1, null);
         worker.setCurrentItemOrArmor(2, null);
         worker.setCurrentItemOrArmor(3, null);
+        worker.setCurrentItemOrArmor(4, null);
+
 
         for(int i = 0; i < worker.getInventoryCitizen().getSizeInventory(); i++)
         {
@@ -181,9 +182,29 @@ public abstract class AbstractEntityAIGuard extends AbstractEntityAISkill<JobGua
                 continue;
             }
 
-            if(stack.getItem() instanceof ItemArmor && worker.getInventoryCitizen().getStackInSlot(((ItemArmor) stack.getItem()).armorType)== null)
+            if(stack.getItem() instanceof ItemArmor)
             {
-                worker.getInventoryCitizen().setInventorySlotContents(((ItemArmor) stack.getItem()).armorType, stack);
+                int slotToSetTo = 0;
+
+                switch (((ItemArmor) stack.getItem()).armorType)
+                {
+                    case 0:
+                        slotToSetTo = 3;
+                        break;
+                    case 1:
+                        slotToSetTo = 2;
+                        break;
+                    case 2:
+                        slotToSetTo = 1;
+                        break;
+                    case 3:
+                        slotToSetTo = 0;
+                }
+
+                if(worker.getEquipmentInSlot(slotToSetTo + 1) == null)
+                {
+                    worker.setCurrentItemOrArmor(slotToSetTo + 1, stack);
+                }
             }
         }
     }

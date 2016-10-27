@@ -590,6 +590,11 @@ public class InventoryCitizen implements IInventory
             heldItem = 0;
         }
 
+        if(index >= stacks.length || index == -1)
+        {
+            return;
+        }
+
         this.stacks[index] = stack;
 
         if (stack != null && stack.stackSize > this.getInventoryStackLimit())
