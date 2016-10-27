@@ -1055,7 +1055,12 @@ public class EntityCitizen extends EntityAgeable implements INpc
     @NotNull
     public DesiredActivity getDesiredActivity()
     {
-        if (!worldObj.isDaytime() && !(this.getColonyJob() instanceof JobGuard))
+        if(this.getColonyJob() instanceof JobGuard)
+        {
+            return DesiredActivity.WORK;
+        }
+
+        if (!worldObj.isDaytime())
         {
             return DesiredActivity.SLEEP;
         }

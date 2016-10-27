@@ -38,7 +38,15 @@ public class TileEntityColonyBuilding extends TileEntityChest
      */
     private AbstractBuilding building;
 
-    public TileEntityColonyBuilding() {}
+    /**
+     * Empty standard constructor.
+     */
+    public TileEntityColonyBuilding()
+    {
+        /**
+         * Intentionally left empty.
+         */
+    }
 
     @Override
     public S35PacketUpdateTileEntity getDescriptionPacket()
