@@ -124,6 +124,13 @@ public class EntityCitizen extends EntityAgeable implements INpc
      * Chance the citizen will rant about bad weather. 20 ticks per 60 seconds = 5 minutes.
      */
     private static final int RANT_ABOUT_WEATHER_CHANCE = 20*60*5;
+
+    /**
+     * Quantity to be moved to rotate without actually moving.
+     */
+    private static final double MOVE_MINIMAL = 0.01D;
+
+
     private static Field navigatorField;
     protected Status                   status  = Status.IDLE;
     private   RenderBipedCitizen.Model modelId = RenderBipedCitizen.Model.SETTLER;
@@ -349,7 +356,7 @@ public class EntityCitizen extends EntityAgeable implements INpc
     }
 
     /**
-     * Change the citizens Rotation to look at said block
+     * Change the citizens Rotation to look at said block.
      *
      * @param block the block he should look at
      */
@@ -367,7 +374,11 @@ public class EntityCitizen extends EntityAgeable implements INpc
         double squareDifference = Math.sqrt(xDifference * xDifference + zDifference * zDifference);
         double intendedRotationYaw = (Math.atan2(zDifference, xDifference) * 180.0D / Math.PI) - 90.0;
         double intendedRotationPitch = -(Math.atan2(yDifference, squareDifference) * 180.0D / Math.PI);
-        this.setRotation((float) updateRotation(this.rotationYaw, intendedRotationYaw, 30), (float) updateRotation(this.rotationPitch, intendedRotationPitch, 30));
+        this.setRotation((float) updateRotation(this.rotationYaw, intendedRotationYaw, 30), (float)updateRotation(this.rotationPitch, intendedRotationPitch, 30));
+
+        double goToX = xDifference > 0? MOVE_MINIMAL : -MOVE_MINIMAL;
+        double goToZ = zDifference > 0? MOVE_MINIMAL : -MOVE_MINIMAL;
+        moveEntity(goToX, 0, goToZ);
     }
 
     /**
@@ -476,6 +487,13 @@ public class EntityCitizen extends EntityAgeable implements INpc
 
         if (colony != null)
         {
+            if(getColonyJob() != null && getColonyJob() instanceof JobGuard)
+            {
+                LanguageHandler.sendPlayersLocalizedMessage(
+                        colony.getMessageEntityPlayers(),
+                        "tile.blockHutTownHall.messageGuardDead",
+                        citizenData.getName());
+            }
             LanguageHandler.sendPlayersLocalizedMessage(
               colony.getMessageEntityPlayers(),
               "tile.blockHutTownHall.messageColonistDead",
@@ -1234,6 +1252,12 @@ public class EntityCitizen extends EntityAgeable implements INpc
     @Override
     public boolean attackEntityFrom(@NotNull DamageSource damageSource, float damage)
     {
+        Entity sourceEntity = damageSource.getEntity();
+        if(sourceEntity instanceof EntityCitizen && ((EntityCitizen) sourceEntity).colonyId == this.colonyId)
+        {
+            return false;
+        }
+
         boolean result = super.attackEntityFrom(damageSource, damage);
 
         if(damageSource.isMagicDamage() || damageSource.isFireDamage())
@@ -1241,6 +1265,17 @@ public class EntityCitizen extends EntityAgeable implements INpc
             return result;
         }
 
+        updateArmorDamage(damage);
+
+        return result;
+    }
+
+    /**
+     * Updates the armour damage after being hit.
+     * @param damage damage dealt.
+     */
+    private void updateArmorDamage(double damage)
+    {
         for(ItemStack stack: this.getArmorInventoryList())
         {
             if(stack == null || stack.getItem() == null || ! (stack.getItem() instanceof ItemArmor))
@@ -1248,10 +1283,13 @@ public class EntityCitizen extends EntityAgeable implements INpc
                 continue;
             }
             stack.damageItem((int)(damage), this);
+
+            if(stack.stackSize < 1)
+            {
+                setItemStackToSlot(getSlotForItemStack(stack), null);
+            }
             setItemStackToSlot(getSlotForItemStack(stack), stack);
         }
-
-        return result;
     }
 
     /**
