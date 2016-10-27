@@ -7,7 +7,7 @@ import com.minecolonies.colony.ColonyView;
 import com.minecolonies.colony.jobs.AbstractJob;
 import com.minecolonies.colony.jobs.JobGuard;
 import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.BlockPos;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -109,7 +109,7 @@ public class BuildingGuardTower extends AbstractBuildingWorker
     {
         if (this.getWorkerEntity() != null && newLevel > MAX_VISION_BONUS_MULTIPLIER)
         {
-            this.getWorkerEntity().getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(BASE_MAX_HEALTH + getBonusHealth());
+            this.getWorkerEntity().getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(BASE_MAX_HEALTH + getBonusHealth());
         }
 
         super.onUpgradeComplete(newLevel);
@@ -133,11 +133,11 @@ public class BuildingGuardTower extends AbstractBuildingWorker
     {
         if(citizen == null && this.getWorkerEntity() != null)
         {
-            this.getWorkerEntity().getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(BASE_MAX_HEALTH);
+            this.getWorkerEntity().getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(BASE_MAX_HEALTH);
         }
         else if(citizen != null && citizen.getCitizenEntity() != null)
         {
-            citizen.getCitizenEntity().getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(BASE_MAX_HEALTH + getBonusHealth());
+            citizen.getCitizenEntity().getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(BASE_MAX_HEALTH + getBonusHealth());
         }
         super.setWorker(citizen);
     }
@@ -183,5 +183,3 @@ public class BuildingGuardTower extends AbstractBuildingWorker
         }
     }
 }
-
-

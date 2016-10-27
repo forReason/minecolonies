@@ -3,16 +3,15 @@ package com.minecolonies.entity.ai.citizen.guard;
 import com.minecolonies.colony.jobs.JobGuard;
 import com.minecolonies.entity.ai.util.AIState;
 import com.minecolonies.entity.ai.util.AITarget;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
-import net.minecraft.entity.projectile.EntityTippedArrow;
+import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.init.*;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.DifficultyInstance;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Random;
 
 import static com.minecolonies.entity.ai.util.AIState.*;
 
@@ -82,19 +81,9 @@ public class EntityAIRangeGuard extends AbstractEntityAIGuard implements IRanged
     private static final double TURN_AROUND = 180D;
 
     /**
-     * Have to aim that bit higher to hit the target.
-     */
-    private static final double AIM_SLIGHTLY_HIGHER_MULTIPLIER   = 0.20000000298023224D;
-
-    /**
      * Normal volume at which sounds are played at.
      */
     private static final double BASIC_VOLUME = 1.0D;
-
-    /**
-     * Guard has to aim x higher to hit his target.
-     */
-    private static final double AIM_HEIGHT = 3.0D;
 
     /**
      * Experience the guard receives each shot arrow.
@@ -163,11 +152,11 @@ public class EntityAIRangeGuard extends AbstractEntityAIGuard implements IRanged
     @Override
     protected AIState searchTarget()
     {
-        if(checkOrRequestItems(new ItemStack(Items.BOW)))
+        if(checkOrRequestItems(new ItemStack(Items.bow)))
         {
             return AIState.GUARD_SEARCH_TARGET;
         }
-        worker.setHeldItem(worker.findFirstSlotInInventoryWith(Items.BOW));
+        worker.setHeldItem(worker.findFirstSlotInInventoryWith(Items.bow));
         return super.searchTarget();
     }
 
@@ -182,7 +171,7 @@ public class EntityAIRangeGuard extends AbstractEntityAIGuard implements IRanged
      */
     protected AIState huntDown()
     {
-        if(!targetEntity.isEntityAlive() || checkOrRequestItems(new ItemStack(Items.BOW)))
+        if(!targetEntity.isEntityAlive() || checkOrRequestItems(new ItemStack(Items.bow)))
         {
             targetEntity = null;
         }
@@ -191,7 +180,7 @@ public class EntityAIRangeGuard extends AbstractEntityAIGuard implements IRanged
         {
             if(worker.getEntitySenses().canSee(targetEntity) && worker.getDistanceToEntity(targetEntity) <= MAX_ATTACK_DISTANCE)
             {
-                worker.resetActiveHand();
+                worker.removeHeldItem();
                 attackEntityWithRangedAttack(targetEntity, DAMAGE_PER_ATTACK);
                 setDelay(getReloadTime());
                 attacksExecuted += 1;
@@ -213,32 +202,30 @@ public class EntityAIRangeGuard extends AbstractEntityAIGuard implements IRanged
         return AIState.GUARD_SEARCH_TARGET;
     }
 
-    /**
-     * Can be overridden in implementations.
-     * <p>
-     * Here the AI can check if the fishes or rods have to be re rendered and do it.
-     */
     @Override
-    protected void updateRenderMetaData()
+    public void attackEntityWithRangedAttack(EntityLivingBase entityToAttack, float baseDamage)
     {
-        updateArmor();
-    }
-
-    @Override
-    public void attackEntityWithRangedAttack(@NotNull EntityLivingBase entityToAttack, float baseDamage)
-    {
-        EntityTippedArrow arrowEntity = new EntityTippedArrow(this.worker.worldObj, worker);
-        double xVector = entityToAttack.posX - worker.posX;
-        double yVector = entityToAttack.getEntityBoundingBox().minY + entityToAttack.height / AIM_HEIGHT - arrowEntity.posY;
-        double zVector = entityToAttack.posZ - worker.posZ;
-        double distance = (double) MathHelper.sqrt_double(xVector * xVector + zVector * zVector);
-
-        //Lower the variable higher the chance that the arrows hits the target.
         double chance = HIT_CHANCE_DIVIDER / (worker.getExperienceLevel()+1);
+        EntityArrow arrowEntity = new EntityArrow(worker.worldObj, worker, entityToAttack, (float) ARROW_SPEED, (float)chance);
+        int powerEnchantment = EnchantmentHelper.getEnchantmentLevel(Enchantment.power.effectId, worker.getHeldItem());
+        int punchEnchantment = EnchantmentHelper.getEnchantmentLevel(Enchantment.punch.effectId, worker.getHeldItem());
+        arrowEntity.setDamage((baseDamage * BASE_DAMAGE_MULTIPLIER)
+                + new Random().nextGaussian() * RANDOM_DAMAGE_MULTPLIER
+                + (float)worker.worldObj.getDifficulty().getDifficultyId() * DIFFICULTY_DAMAGE_INCREASE);
+        if(powerEnchantment > 0)
+        {
+            arrowEntity.setDamage(arrowEntity.getDamage() + (double)powerEnchantment * POWER_ENCHANTMENT_DAMAGE_MULTIPLIER + BASE_POWER_ENCHANTMENT_DAMAGE);
+        }
 
-        arrowEntity.setThrowableHeading(xVector, yVector + distance * AIM_SLIGHTLY_HIGHER_MULTIPLIER, zVector, (float) ARROW_SPEED, (float) chance);
+        if(punchEnchantment > 0)
+        {
+            arrowEntity.setKnockbackStrength(punchEnchantment);
+        }
 
-        addEffectsToArrow(arrowEntity, baseDamage);
+        if(EnchantmentHelper.getEnchantmentLevel(Enchantment.flame.effectId, worker.getHeldItem()) > 0)
+        {
+            arrowEntity.setFire(FIRE_EFFECT_CHANCE);
+        }
 
         worker.addExperience(XP_EACH_ARROW);
         worker.faceEntity(entityToAttack, (float)TURN_AROUND, (float)TURN_AROUND);
@@ -251,54 +238,14 @@ public class EntityAIRangeGuard extends AbstractEntityAIGuard implements IRanged
         double goToZ = zDiff > 0? MOVE_MINIMAL : -MOVE_MINIMAL;
 
         worker.moveEntity(goToX, 0, goToZ);
-
-        worker.swingArm(EnumHand.MAIN_HAND);
-        worker.playSound(SoundEvents.ENTITY_SKELETON_SHOOT, (float) BASIC_VOLUME, (float) getRandomPitch());
+        worker.playSound("random.bow", (float)BASIC_VOLUME, (float) getRandomPitch());
         worker.worldObj.spawnEntityInWorld(arrowEntity);
-
-        worker.damageItemInHand(1);
     }
 
     /**
-     * Method used to add potion/enchantment effects to the bow depending on his enchantments etc.
-     * @param arrowEntity the arrow to add these effects to.
-     * @param baseDamage the arrow base damage.
+     * Calculates a random pitch for the arrow sound.
+     * @return the random pitch as a double.
      */
-    private void addEffectsToArrow(EntityTippedArrow arrowEntity, double baseDamage)
-    {
-        int powerEntchantment = EnchantmentHelper.getMaxEnchantmentLevel(Enchantments.POWER, worker);
-        int punchEntchantment = EnchantmentHelper.getMaxEnchantmentLevel(Enchantments.PUNCH, worker);
-
-        DifficultyInstance difficulty = this.worker.worldObj.getDifficultyForLocation(new BlockPos(worker));
-        arrowEntity.setDamage((baseDamage * BASE_DAMAGE_MULTIPLIER)
-                + worker.getRandom().nextGaussian() * RANDOM_DAMAGE_MULTPLIER
-                + this.worker.worldObj.getDifficulty().getDifficultyId() * DIFFICULTY_DAMAGE_INCREASE);
-
-        if(powerEntchantment > 0)
-        {
-            arrowEntity.setDamage(arrowEntity.getDamage() + (double)powerEntchantment * BASE_POWER_ENCHANTMENT_DAMAGE + POWER_ENCHANTMENT_DAMAGE_MULTIPLIER);
-        }
-
-        if(punchEntchantment > 0)
-        {
-            arrowEntity.setKnockbackStrength(punchEntchantment);
-        }
-
-        boolean onFire = worker.isBurning() && difficulty.func_190083_c() && worker.getRandom().nextBoolean();
-        onFire = onFire || EnchantmentHelper.getMaxEnchantmentLevel(Enchantments.FLAME, worker) > 0;
-
-        if(onFire)
-        {
-            arrowEntity.setFire(FIRE_EFFECT_CHANCE);
-        }
-
-        ItemStack holdItem = worker.getHeldItem(EnumHand.OFF_HAND);
-        if(holdItem != null && holdItem.getItem() == Items.TIPPED_ARROW)
-        {
-            arrowEntity.setPotionEffect(holdItem);
-        }
-    }
-
     private double getRandomPitch()
     {
         return PITCH_DIVIDER / (worker.getRNG().nextDouble() * PITCH_MULTIPLIER + BASE_PITCH);

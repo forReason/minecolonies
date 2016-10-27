@@ -20,26 +20,16 @@ import com.minecolonies.sounds.FishermanSounds;
 import com.minecolonies.util.*;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.entity.EntityAgeable;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.INpc;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.*;
 import net.minecraft.entity.ai.*;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.monster.EntityMob;
-import net.minecraft.entity.passive.EntityTameable;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.MobEffects;
-import net.minecraft.init.SoundEvents;
-import net.minecraft.inventory.ContainerPlayer;
-import net.minecraft.inventory.EntityEquipmentSlot;
-import net.minecraft.inventory.Slot;
 import net.minecraft.item.*;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
-import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -297,7 +287,7 @@ public class EntityCitizen extends EntityAgeable implements INpc
         }
     }
 
-    private AbstractJob getColonyJob()
+    public AbstractJob getColonyJob()
     {
         return citizenData != null ? citizenData.getJob() : null;
     }
@@ -928,11 +918,11 @@ public class EntityCitizen extends EntityAgeable implements INpc
     {
         super.applyEntityAttributes();
 
-        getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(BASE_MAX_HEALTH);
-        getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(BASE_MOVEMENT_SPEED);
+        getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(BASE_MAX_HEALTH);
+        getEntityAttribute(SharedMonsterAttributes.movementSpeed).setBaseValue(BASE_MOVEMENT_SPEED);
 
         //path finding search range
-        getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(BASE_PATHFINDING_RANGE);
+        getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(BASE_PATHFINDING_RANGE);
     }
 
     @Override
@@ -1299,8 +1289,12 @@ public class EntityCitizen extends EntityAgeable implements INpc
      */
     private void updateArmorDamage(double damage)
     {
-        for(ItemStack stack: this.getArmorInventoryList())
+        //todo
+
+        for(int i=0; i<4;i++)
         {
+            ItemStack stack = getEquipmentInSlot(i);
+
             if(stack == null || stack.getItem() == null || ! (stack.getItem() instanceof ItemArmor))
             {
                 continue;
@@ -1309,9 +1303,9 @@ public class EntityCitizen extends EntityAgeable implements INpc
 
             if(stack.stackSize < 1)
             {
-                setItemStackToSlot(getSlotForItemStack(stack), null);
+                getInventoryCitizen().setInventorySlotContents(findFirstSlotInInventoryWith(stack.getItem()), null);
             }
-            setItemStackToSlot(getSlotForItemStack(stack), stack);
+            getInventoryCitizen().setInventorySlotContents(findFirstSlotInInventoryWith(stack.getItem()), stack);
         }
     }
 

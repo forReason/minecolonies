@@ -3,6 +3,7 @@ package com.minecolonies.colony.jobs;
 import com.minecolonies.client.render.RenderBipedCitizen;
 import com.minecolonies.colony.CitizenData;
 import com.minecolonies.entity.ai.basic.AbstractAISkeleton;
+import com.minecolonies.entity.ai.citizen.guard.EntityAIMeleeGuard;
 import com.minecolonies.entity.ai.citizen.guard.EntityAIRangeGuard;
 import org.jetbrains.annotations.NotNull;
 

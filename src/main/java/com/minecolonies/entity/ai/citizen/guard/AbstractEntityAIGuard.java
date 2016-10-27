@@ -17,15 +17,15 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.monster.EntitySlime;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.*;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.BlockPos;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
+import java.util.Random;
 
 import static com.minecolonies.entity.ai.util.AIState.GUARD_RESTOCK;
 import static com.minecolonies.entity.ai.util.AIState.IDLE;
@@ -49,7 +49,7 @@ public abstract class AbstractEntityAIGuard extends AbstractEntityAISkill<JobGua
     /**
      * Basic delay after operations.
      */
-    private static final int BASE_DELAY = 10;
+    private static final int BASE_DELAY = 1;
 
     /**
      * Max amount the guard can shoot arrows before restocking.
@@ -139,7 +139,7 @@ public abstract class AbstractEntityAIGuard extends AbstractEntityAISkill<JobGua
                         continue;
                     }
 
-                    if (stack.getItem() instanceof ItemArmor && worker.getItemStackFromSlot(((ItemArmor) stack.getItem()).armorType) == null)
+                    if (stack.getItem() instanceof ItemArmor && worker.getInventoryCitizen().getStackInSlot(((ItemArmor) stack.getItem()).armorType) == null)
                     {
                         final int emptySlot = worker.getInventoryCitizen().getFirstEmptySlot();
 
@@ -166,10 +166,10 @@ public abstract class AbstractEntityAIGuard extends AbstractEntityAISkill<JobGua
      */
     protected void updateArmor()
     {
-        worker.setItemStackToSlot(EntityEquipmentSlot.CHEST, null);
-        worker.setItemStackToSlot(EntityEquipmentSlot.FEET, null);
-        worker.setItemStackToSlot(EntityEquipmentSlot.HEAD, null);
-        worker.setItemStackToSlot(EntityEquipmentSlot.LEGS, null);
+        worker.setCurrentItemOrArmor(0, null);
+        worker.setCurrentItemOrArmor(1, null);
+        worker.setCurrentItemOrArmor(2, null);
+        worker.setCurrentItemOrArmor(3, null);
 
         for(int i = 0; i < worker.getInventoryCitizen().getSizeInventory(); i++)
         {
@@ -181,9 +181,9 @@ public abstract class AbstractEntityAIGuard extends AbstractEntityAISkill<JobGua
                 continue;
             }
 
-            if(stack.getItem() instanceof ItemArmor && worker.getItemStackFromSlot(((ItemArmor) stack.getItem()).armorType)== null)
+            if(stack.getItem() instanceof ItemArmor && worker.getInventoryCitizen().getStackInSlot(((ItemArmor) stack.getItem()).armorType)== null)
             {
-                worker.setItemStackToSlot(((ItemArmor) stack.getItem()).armorType, stack);
+                worker.getInventoryCitizen().setInventorySlotContents(((ItemArmor) stack.getItem()).armorType, stack);
             }
         }
     }
@@ -309,7 +309,7 @@ public abstract class AbstractEntityAIGuard extends AbstractEntityAISkill<JobGua
 
         Object[] buildingArray = buildingList.toArray();
 
-        int random = worker.getRandom().nextInt(buildingArray.length);
+        int random = new Random().nextInt(buildingArray.length);
 
         AbstractBuilding building = (AbstractBuilding) buildingArray[random];
         if(building instanceof BuildingGuardTower)
