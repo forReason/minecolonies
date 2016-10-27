@@ -5,9 +5,11 @@ import com.minecolonies.entity.ai.util.AIState;
 import com.minecolonies.entity.ai.util.AITarget;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.init.Items;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemSword;
+import net.minecraft.item.ItemTool;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumHand;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,7 +23,7 @@ public class EntityAIMeleeGuard extends AbstractEntityAIGuard implements IRanged
     /**
      * Basic delay for the next shot.
      */
-    private static final int BASE_RELOAD_TIME = 60;
+    private static final int BASE_RELOAD_TIME = 30;
 
     /**
      * Base damage which the power enchantments added
@@ -127,7 +129,12 @@ public class EntityAIMeleeGuard extends AbstractEntityAIGuard implements IRanged
     /**
      * Damage per range attack.
      */
-    private static final int DAMAGE_PER_ATTACK   = 2;
+    private static final double DAMAGE_PER_ATTACK = 0.5;
+
+    /**
+     * Chance that a mob is lit on fire when a weapon has the fire aspect enchantment.
+     */
+    private static final int FIRE_CHANCE_MULTIPLIER = 4;
 
     /**
      * Sets up some important skeleton stuff for every ai.
@@ -154,6 +161,33 @@ public class EntityAIMeleeGuard extends AbstractEntityAIGuard implements IRanged
         }
     }
 
+    @Override
+    protected AIState searchTarget()
+    {
+        if(checkForWeapon())
+        {
+            return AIState.GUARD_SEARCH_TARGET;
+        }
+
+        for(int i = 0; i < worker.getInventoryCitizen().getSizeInventory(); i++)
+        {
+            ItemStack stack = worker.getInventoryCitizen().getStackInSlot(i);
+
+            if(stack == null)
+            {
+                continue;
+            }
+
+            if(stack.getItem() instanceof ItemSword || stack.getItem() instanceof ItemTool)
+            {
+                worker.setHeldItem(i);
+
+                return super.searchTarget();
+            }
+        }
+
+        return super.searchTarget();
+    }
     private int getReloadTime()
     {
         return BASE_RELOAD_TIME / (worker.getExperienceLevel() + 1);
@@ -165,7 +199,7 @@ public class EntityAIMeleeGuard extends AbstractEntityAIGuard implements IRanged
      */
     protected AIState huntDown()
     {
-        if(!targetEntity.isEntityAlive())
+        if(!targetEntity.isEntityAlive() || checkForWeapon())
         {
             targetEntity = null;
         }
@@ -175,7 +209,7 @@ public class EntityAIMeleeGuard extends AbstractEntityAIGuard implements IRanged
             if(worker.getEntitySenses().canSee(targetEntity) && worker.getDistanceToEntity(targetEntity) <= MAX_ATTACK_DISTANCE)
             {
                 worker.resetActiveHand();
-                attackEntityWithRangedAttack(targetEntity, DAMAGE_PER_ATTACK);
+                attackEntity(targetEntity, (float)DAMAGE_PER_ATTACK);
                 setDelay(getReloadTime());
                 attacksExecuted += 1;
 
@@ -204,26 +238,28 @@ public class EntityAIMeleeGuard extends AbstractEntityAIGuard implements IRanged
     @Override
     protected void updateRenderMetaData()
     {
-        updateArmor();
-    }
+        double damgeToBeDealt = baseDamage;
 
-    @Override
-    public void attackEntityWithRangedAttack(@NotNull EntityLivingBase entityToAttack, float baseDamage)
-    {
-        EntityTippedArrow arrowEntity = new EntityTippedArrow(this.worker.worldObj, worker);
-        double xVector = entityToAttack.posX - worker.posX;
-        double yVector = entityToAttack.getEntityBoundingBox().minY + entityToAttack.height / AIM_HEIGHT - arrowEntity.posY;
-        double zVector = entityToAttack.posZ - worker.posZ;
-        double distance = (double) MathHelper.sqrt_double(xVector * xVector + zVector * zVector);
+        ItemStack heldItem = worker.getHeldItem(EnumHand.MAIN_HAND);
+        if(heldItem != null)
+        {
+            if(heldItem.getItem() instanceof ItemSword)
+            {
+                damgeToBeDealt += ((ItemSword) heldItem.getItem()).getDamageVsEntity();
+            }
+            damgeToBeDealt += EnchantmentHelper.getModifierForCreature(heldItem, targetEntity.getCreatureAttribute());
+        }
 
-        //Lower the variable higher the chance that the arrows hits the target.
-        double chance = HIT_CHANCE_DIVIDER / (worker.getExperienceLevel()+1);
+        targetEntity.attackEntityFrom(new DamageSource(worker.getName()), (float)damgeToBeDealt);
+        targetEntity.setRevengeTarget(worker);
 
-        arrowEntity.setThrowableHeading(xVector, yVector + distance * AIM_SLIGHTLY_HIGHER_MULTIPLIER, zVector, (float) ARROW_SPEED, (float) chance);
+        int fireAspectModifier = EnchantmentHelper.getFireAspectModifier(worker);
+        if(fireAspectModifier > 0)
+        {
+            targetEntity.setFire(fireAspectModifier * FIRE_CHANCE_MULTIPLIER);
+        }
 
-        addEffectsToArrow(arrowEntity, baseDamage);
-
-        worker.addExperience(XP_EACH_ARROW);
+        worker.addExperience(XP_EACH_HIT);
         worker.faceEntity(entityToAttack, (float)TURN_AROUND, (float)TURN_AROUND);
         worker.getLookHelper().setLookPositionWithEntity(entityToAttack, (float)TURN_AROUND, (float)TURN_AROUND);
 
