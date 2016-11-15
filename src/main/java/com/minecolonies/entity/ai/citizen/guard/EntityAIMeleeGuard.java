@@ -10,7 +10,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
 import net.minecraft.util.DamageSource;
-import net.minecraftforge.client.event.sound.SoundEvent;
 import org.jetbrains.annotations.NotNull;
 
 import static com.minecolonies.entity.ai.util.AIState.*;
