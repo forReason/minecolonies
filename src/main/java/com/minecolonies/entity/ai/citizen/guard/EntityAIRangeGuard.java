@@ -91,10 +91,10 @@ public class EntityAIRangeGuard extends AbstractEntityAIGuard implements IRanged
     private static final double XP_EACH_ARROW   = 0.2;
 
     /**
-     * Used to calculate the chance that an arrow hits, if the worker levels is higher than 15 the chance gets worse again.
+     * Used to calculate the chance that an arrow hits, if the worker levels is higher than 12 the chance gets worse again.
      * Because of the rising fire speed.
      */
-    private static final double HIT_CHANCE_DIVIDER = 15.0D;
+    private static final double HIT_CHANCE_DIVIDER = 12.0D;
 
     /**
      * The arrow travell speed.
