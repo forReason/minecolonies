@@ -19,6 +19,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumWorldBlockLayer;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
@@ -172,6 +173,31 @@ public abstract class AbstractBlockHut extends Block implements ITileEntityProvi
                 colony.addNewBuilding(hut);
             }
         }
+    }
+
+    @Override
+    public boolean isFullCube()
+    {
+        return super.isFullCube();
+    }
+
+    @Override
+    public boolean isOpaqueCube()
+    {
+        return false;
+    }
+
+    @Override
+    public boolean isFullBlock()
+    {
+        return false;
+    }
+
+    @Override
+    public boolean doesSideBlockRendering(
+            final IBlockAccess p_doesSideBlockRendering_1_, final BlockPos p_doesSideBlockRendering_2_, final EnumFacing p_doesSideBlockRendering_3_)
+    {
+        return false;
     }
 
     @NotNull
