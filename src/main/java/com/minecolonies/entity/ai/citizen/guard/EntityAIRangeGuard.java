@@ -174,9 +174,11 @@ public class EntityAIRangeGuard extends AbstractEntityAIGuard implements IRanged
         if(!targetEntity.isEntityAlive() || checkOrRequestItems(new ItemStack(Items.bow)))
         {
             targetEntity = null;
+            worker.setAIMoveSpeed((float) 1.0D);
+            return AIState.GUARD_GATHERING;
         }
 
-        if (targetEntity != null)
+        if (worker.getEntitySenses().canSee(targetEntity) && worker.getDistanceToEntity(targetEntity) <= MAX_ATTACK_DISTANCE)
         {
             if(worker.getEntitySenses().canSee(targetEntity) && worker.getDistanceToEntity(targetEntity) <= MAX_ATTACK_DISTANCE)
             {
@@ -191,13 +193,12 @@ public class EntityAIRangeGuard extends AbstractEntityAIGuard implements IRanged
 
                 return AIState.GUARD_HUNT_DOWN_TARGET;
             }
-            worker.setAIMoveSpeed((float) (BASE_FOLLOW_SPEED + BASE_FOLLOW_SPEED_MULTIPLIER * worker.getExperienceLevel()));
-            worker.isWorkerAtSiteWithMove(targetEntity.getPosition(), MOVE_CLOSE);
 
-            return AIState.GUARD_SEARCH_TARGET;
+            return AIState.GUARD_HUNT_DOWN_TARGET;
         }
+        worker.setAIMoveSpeed((float) (BASE_FOLLOW_SPEED + BASE_FOLLOW_SPEED_MULTIPLIER * worker.getExperienceLevel()));
+        worker.isWorkerAtSiteWithMove(targetEntity.getPosition(), MOVE_CLOSE);
 
-        worker.setAIMoveSpeed(1);
         return AIState.GUARD_SEARCH_TARGET;
     }
 

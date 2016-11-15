@@ -212,5 +212,10 @@ public enum AIState
     /**
      * Go back to the hut to "restock".
      */
-    GUARD_RESTOCK
+    GUARD_RESTOCK,
+
+    /**
+     * Gather dropped items after kill.
+     */
+    GUARD_GATHERING
 }
